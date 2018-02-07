@@ -62,6 +62,7 @@ import base64
 from sqlalchemy.sql import *
 import json
 import datetime
+from wsgiref.handlers import format_date_time
 from iso639 import languages as isoLanguages
 from iso639 import __version__ as iso639Version
 from uuid import uuid4
@@ -1948,6 +1949,9 @@ def get_download_link(book_id, book_format):
             df = gdriveutils.getFileFromEbooksFolder(Gdrive.Instance().drive, book.path, '%s.%s' % (data.name, book_format))
             return do_gdrive_download(df, headers)
         else:
+            path = os.path.join(config.config_calibre_dir, book.path, data.name + "." + book_format)
+            headers["Content-Length"] = os.path.getsize(path)
+            headers["Last-Modified"] = format_date_time(os.path.getmtime(path))
             response = make_response(send_from_directory(os.path.join(config.config_calibre_dir, book.path), data.name + "." + book_format))
             response.headers = headers
             return response
